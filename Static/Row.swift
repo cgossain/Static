@@ -75,7 +75,15 @@ public struct Row: Hashable, Equatable {
         }
     }
 
-    public typealias Context = [String: Any]
+    /// A type that can be used as a key.
+    public struct ContextKey : Hashable, Equatable, RawRepresentable {
+        public init(rawValue: String) {
+            self.rawValue = rawValue
+        }
+        public let rawValue: String
+    }
+    
+    public typealias Context = [ContextKey : Any]
     public typealias EditActionSelection = (IndexPath) -> ()
 
     /// Representation of an editing action, when swiping to edit a cell.
