@@ -43,6 +43,11 @@ public class DataSource: NSObject {
 
     /// Automatically deselect rows after they are selected
     public var automaticallyDeselectRows = true
+    
+    /// Animates section changes when the `sections` property is set.
+    ///
+    /// Defaults to `false`.
+    public var animatesSectionChanges = false
 
     private var registeredCellIdentifiers = Set<String>()
 
@@ -130,7 +135,7 @@ public class DataSource: NSObject {
 
     private func refreshTableSections(oldSections: [Section] = []) {
         guard let tableView = tableView else { return }
-        guard !oldSections.isEmpty else {
+        guard !oldSections.isEmpty, animatesSectionChanges else {
             tableView.reloadData()
             return
         }
