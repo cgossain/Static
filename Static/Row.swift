@@ -204,6 +204,11 @@ public struct Row: Hashable, Equatable {
 
 public func ==(lhs: Row, rhs: Row) -> Bool {
     return lhs.uuid == rhs.uuid
+        && lhs.text == rhs.text
+        && lhs.detailText == rhs.detailText
+        && lhs.accessory == rhs.accessory
+        && lhs.image == rhs.image
+        && lhs.cellClass == rhs.cellClass
 }
 
 

@@ -1,6 +1,6 @@
 Pod::Spec.new do |spec|
   spec.name = 'Static'
-  spec.version = '4.1.0'
+  spec.version = '4.2.0'
   spec.summary = 'Simple static table views for iOS in Swift.'
   spec.description = 'Static provides simple static table views for iOS in Swift.'
   spec.homepage = 'https://github.com/venmo/static'
@@ -10,4 +10,5 @@ Pod::Spec.new do |spec|
   spec.ios.deployment_target = '11.0'
   spec.frameworks = 'UIKit'
   spec.source_files = 'Static/*.{swift,h}'
+  spec.dependency 'DifferenceKit', '~> 1.3.0'
 end

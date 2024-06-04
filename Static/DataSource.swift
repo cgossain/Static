@@ -1,3 +1,4 @@
+import DifferenceKit
 import UIKit
 
 /// Table view data source.
@@ -27,9 +28,15 @@ public class DataSource: NSObject {
 
     /// Sections to use in the table view.
     public var sections: [Section] {
-        didSet {
+        get {
+            backingSections
+        }
+        set {
             assert(Thread.isMainThread, "You must access Static.DataSource from the main thread.")
-            refresh(oldSections: oldValue)
+            refresh(
+                newSections: newValue,
+                oldSections: backingSections
+            )
         }
     }
 
@@ -43,12 +50,16 @@ public class DataSource: NSObject {
 
     /// Automatically deselect rows after they are selected
     public var automaticallyDeselectRows = true
-    
-    /// Animates section changes when the `sections` property is set.
+
+    /// A Boolean value that indicates whether section changes should be animated.
     ///
     /// Defaults to `false`.
     public var animatesSectionChanges = false
 
+
+    // MARK: - Private
+
+    private var backingSections: [Section]
     private var registeredCellIdentifiers = Set<String>()
 
 
@@ -59,7 +70,7 @@ public class DataSource: NSObject {
         assert(Thread.isMainThread, "You must access Static.DataSource from the main thread.")
 
         self.tableView = tableView
-        self.sections = sections ?? []
+        self.backingSections = sections ?? []
         self.tableViewDelegate = tableViewDelegate
 
         super.init()
@@ -104,12 +115,20 @@ public class DataSource: NSObject {
         guard let tableView = tableView else { return }
         tableView.dataSource = self
         tableView.delegate = self
-        refresh()
+        refresh(newSections: backingSections)
     }
 
-    private func refresh(oldSections: [Section] = []) {
-        refreshRegisteredCells()
-        refreshTableSections(oldSections: oldSections)
+    private func refresh(
+        newSections: [Section],
+        oldSections: [Section] = []
+    ) {
+        refreshRegisteredCells(
+            newSections: newSections
+        )
+        refreshTableSections(
+            newSections: newSections,
+            oldSections: oldSections
+        )
     }
 
     fileprivate func section(at index: Int) -> Section? {
@@ -133,48 +152,12 @@ public class DataSource: NSObject {
         return nil
     }
 
-    private func refreshTableSections(oldSections: [Section] = []) {
-        guard let tableView = tableView else { return }
-        guard !oldSections.isEmpty, animatesSectionChanges else {
-            tableView.reloadData()
-            return
-        }
-
-        let oldCount = oldSections.count
-        let newCount = sections.count
-        let delta = newCount - oldCount
-        let animation = UITableView.RowAnimation.automatic
-
-        tableView.beginUpdates()
-
-        if delta == 0 {
-            tableView.reloadSections(IndexSet(integersIn: 0..<newCount), with: animation)
-        } else {
-            if delta > 0 {
-                // Insert sections
-                let start = oldCount - 1
-                let range: Range<IndexSet.Element> = start..<(start + delta)
-                tableView.insertSections(IndexSet(integersIn: range), with: animation)
-            } else {
-                // Remove sections
-                let range: Range<IndexSet.Element> = newCount..<(newCount - delta)
-                tableView.deleteSections(IndexSet(integersIn: range), with: animation)
-            }
-
-            // Reload existing sections
-            let commonCount = min(oldCount, newCount)
-            tableView.reloadSections(IndexSet(integersIn: 0..<commonCount), with: animation)
-        }
-
-        tableView.endUpdates()
-    }
-
-    private func refreshRegisteredCells() {
+    private func refreshRegisteredCells(newSections: [Section]) {
         // A table view is required to manipulate registered cells
         guard let tableView = tableView else { return }
 
         // Filter to only rows with unregistered cells
-        let rows = sections.flatMap{ $0.rows }.filter { !self.registeredCellIdentifiers.contains($0.cellIdentifier) }
+        let rows = newSections.flatMap{ $0.rows }.filter { !self.registeredCellIdentifiers.contains($0.cellIdentifier) }
 
         for row in rows {
             let identifier = row.cellIdentifier
@@ -190,6 +173,30 @@ public class DataSource: NSObject {
             } else {
                 tableView.register(row.cellClass, forCellReuseIdentifier: identifier)
             }
+        }
+    }
+    
+    private func refreshTableSections(
+        newSections: [Section],
+        oldSections: [Section] = []
+    ) {
+        guard let tableView = tableView else {
+            self.backingSections = newSections
+            return
+        }
+        guard !oldSections.isEmpty, animatesSectionChanges else {
+            self.backingSections = newSections
+            tableView.reloadData()
+            return
+        }
+        
+        let changeset = StagedChangeset(source: oldSections, target: newSections)
+        
+        tableView.reload(
+            using: changeset,
+            with: .automatic
+        ) { data in
+            self.backingSections = data
         }
     }
 }
