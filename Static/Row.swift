@@ -230,6 +230,7 @@ public func ==(lhs: Row, rhs: Row) -> Bool {
         && lhs.accessory == rhs.accessory
         && lhs.image == rhs.image
         && lhs.cellClass == rhs.cellClass
+        && lhs.context == rhs.context
 }
 
 
@@ -242,5 +243,51 @@ public func ==(lhs: Row.Accessory, rhs: Row.Accessory) -> Bool {
     case (.detailButton(_), .detailButton(_)): return true
     case (.view(let l), .view(let r)): return l == r
     default: return false
+    }
+}
+
+extension Optional: Equatable where Wrapped == Row.Context {
+    public static func == (lhs: Row.Context?, rhs: Row.Context?) -> Bool {
+        switch (lhs, rhs) {
+        case (nil, nil):
+            return true
+        case (nil, _), (_, nil):
+            return false
+        case (let lhsContext?, let rhsContext?):
+            return lhsContext == rhsContext
+        }
+    }
+}
+
+extension Row.Context: Equatable {
+    public static func == (lhs: Row.Context, rhs: Row.Context) -> Bool {
+        guard lhs.keys == rhs.keys else {
+            return false
+        }
+        
+        for key in lhs.keys {
+            let lhsValue = lhs[key]
+            let rhsValue = rhs[key]
+            
+            guard let lhsEquatable = lhsValue as? any Equatable, 
+                  let rhsEquatable = rhsValue as? any Equatable else {
+                return false
+            }
+            
+            if !lhsEquatable.isEqualTo(rhsEquatable) {
+                return false
+            }
+        }
+        
+        return true
+    }
+}
+
+fileprivate extension Equatable {
+    func isEqualTo(_ other: Any) -> Bool {
+        guard let otherEquatable = other as? Self else {
+            return false
+        }
+        return self == otherEquatable
     }
 }
