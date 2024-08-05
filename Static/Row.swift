@@ -124,6 +124,24 @@ public struct Row: Hashable, Equatable {
             self.actions = actions
         }
     }
+    
+    /// A deselection mode.
+    public enum DeselectionMode {
+        /// The automatic mode.
+        ///
+        /// Respects  the `automaticallyDeselectRows` property of the data source.
+        case automatic
+        
+        /// The deselect mode.
+        ///
+        /// Automatically deselects row after being selected.
+        case deselect
+        
+        /// The none mode.
+        ///
+        /// Don't do anything. Stay selected.
+        case none
+    }
 
     // MARK: - Properties
 
@@ -164,12 +182,15 @@ public struct Row: Hashable, Equatable {
     
     /// Returns the swipe actions to display on the trailing edge of the row.
     public var trailingSwipeActionsConfiguration: SwipeActionsConfiguration?
+    
+    /// The deselection mode.
+    public var deselectionMode: DeselectionMode = .automatic
 
     var canEdit: Bool {
         return (editActions.count > 0) || (leadingSwipeActionsConfiguration != nil) || (trailingSwipeActionsConfiguration != nil)
     }
 
-    var isSelectable: Bool {
+    public var isSelectable: Bool {
         return selection != nil
     }
 

@@ -314,12 +314,24 @@ extension DataSource: UITableViewDelegate {
     }
 
     public func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-        if automaticallyDeselectRows {
-            tableView.deselectRow(at: indexPath as IndexPath, animated: true)
-        }
-
+        let shouldDeselect: Bool
         if let row = row(at: indexPath) {
             row.selection?(row)
+            
+            switch row.deselectionMode {
+            case .automatic:
+                shouldDeselect = automaticallyDeselectRows
+            case .deselect:
+                shouldDeselect = true
+            case .none:
+                shouldDeselect = false
+            }
+        } else {
+            shouldDeselect = automaticallyDeselectRows
+        }
+        
+        if shouldDeselect {
+            tableView.deselectRow(at: indexPath, animated: true)
         }
 
         tableViewDelegate?.tableView?(tableView, didSelectRowAt: indexPath)
