@@ -6,7 +6,7 @@ class RowTests: XCTestCase {
     func testInit() {
         let selection: Selection = { (row) in }
         let context: Row.Context = [
-            "Hello": "world"
+            .hello : "world"
         ]
         let accessibilityTraits: UIAccessibilityTraits = [.button, .staticText]
 
@@ -15,7 +15,7 @@ class RowTests: XCTestCase {
         XCTAssertEqual("1234", row.uuid)
         XCTAssertEqual("Title", row.text!)
         XCTAssertEqual("Detail", row.detailText!)
-        XCTAssertEqual("world", row.context?["Hello"] as? String)
+        XCTAssertEqual("world", row.context?[.hello] as? String)
         XCTAssertEqual("TitleRow", row.accessibilityIdentifier)
         XCTAssertEqual("TitleRowAccessibilityLabel", row.accessibilityLabel)
         XCTAssertEqual(accessibilityTraits, row.accessibilityTraits)
@@ -71,4 +71,9 @@ class RowTests: XCTestCase {
         XCTAssertEqual(row1, row1)
         XCTAssertFalse(row1 == row2)
     }
+}
+
+extension Row.ContextKey {
+    
+    static let hello = Row.ContextKey(rawValue: "Hello")
 }
