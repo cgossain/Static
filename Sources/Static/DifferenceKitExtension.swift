@@ -10,7 +10,7 @@ extension Section: DifferentiableSection {
         return uuid
     }
     
-    public init<C>(source: Section, elements: C) where C : Collection, C.Element == Row {
+    public init<C>(source: Section, elements: C) where C : Swift.Collection, C.Element == Row {
         self.uuid = source.uuid
         self.header = source.header
         self.rows = Array(elements)
